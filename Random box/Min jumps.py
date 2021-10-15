@@ -15,13 +15,15 @@ def minjumps (arr):
     #Be in arr[i]. Scan the next <arr[i]> to find the max (j + arr[j]). Mark its position = k.
     #Substitute the values up to position k with the current number of steps.
     #Repeat starting with arr[k].
+    if len(arr) == 1: return 0
+    
     curr_pos = 0
     step = 0
     
     while True:
         curr_steps = arr[curr_pos]
         
-        if curr_pos + curr_steps >= len(arr)-1: return step
+        if curr_pos + curr_steps >= len(arr)-1: return step + 1
         
         max_reach = 0
         max_reach_pos = 0
@@ -45,6 +47,11 @@ print('OK:', name) if minjumps(case) == result else print('NOK:', name)
 name = 'Unreachable case'
 case = [1,0,1]
 result = -1
+print('OK:', name) if minjumps(case) == result else print('NOK:', name)
+
+name = 'Trivial case'
+case = [1]
+result = 0
 print('OK:', name) if minjumps(case) == result else print('NOK:', name)
 
 name = 'Case 1'
