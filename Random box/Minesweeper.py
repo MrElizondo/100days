@@ -2,6 +2,7 @@
 
 import numpy as np
 from random import randrange
+from os import system
 
 
 class Board:
@@ -78,9 +79,120 @@ class Board:
         output.pop(-1)
         output.append(last_row)
         
-        return '\n'.join([''.join([chr(c) for c in row]) for row in output])
+        return '\n'.join([''.join([chr(int(c)) for c in row]) for row in output])
+
+    
+    def shape (self):
+        width, height, _ = np.shape(self.board)
+        return width, height
+    
+    
+    def print(self):
+        system('cls')
+        print(self)
+    
+    
+    def request_dimensions ():
+        '''Requests board dimensions and mine number and validates them.'''
+        valid = False
+        while not valid:
+            width =  input('Enter number of columns: ')
+            try:
+                width = int(width)
+                assert width > 0
+                valid = True
+            except: print('Please enter a positive number.')
+
+        valid = False
+        while not valid:
+            height = input('Enter number of rows: ')
+            try:
+                height = int(height)
+                assert height > 0
+                valid = True
+            except: print('Please enter a positive number.')
+
+        valid = False
+        while not valid:
+            mines =  input('Enter number of mines: ')
+            try:
+                mines = int(mines)
+                assert mines > 0
+                if mines >= height*width: print('There are too many mines.')
+                else:                     valid = True
+            except: print('Please enter a positive number.')
+        
+        return width, height, mines
+    
+    
+    def reveal (self, column, row):
+        '''Given a location on the board, this method reveals the number in that tile by changing
+        its visibility value to 1. If the number is 0, it also triggers reveal for all neighbouring
+        tiles. If the tile contains a mine, the function will return True, if not False.'''
+        number = self.board[column, row, 0]
+        self.board[column, row, 1] = 1
+        
+        if number == 9:
+            return True
+        elif number == 0:
+            for i in range(-1,2):
+                for j in range(-1,2):
+                    if (not (i == 0 and j == 0)) and (column + i >= 0) and (row + j >= 0):
+                        visibility = self.board[column+i, row+j, 1]
+                        if not visibility:
+                            try: self.reveal(column + i, row + j)
+                            except: pass
+        return False
+    
+    
+    def request_coordinates (self, width, height):
+        '''Requests coordinates of a tile and validates them.'''
+        valid = False
+        while not valid:
+            valid_x, valid_y = False, False
+            
+            while not valid_x:
+                x = input('Enter a column number (columns start with 1): ')
+                try:
+                    x = int(x)
+                    assert x > 0
+                    assert x <= width
+                    valid_x = True
+                except:
+                    print('The number must be positive and less or equal to ' + str(width) + '.')
+            x -= 1
+            
+            while not valid_y:
+                y = input('Enter a column number (rows start with 1): ')
+                try:
+                    y = int(y)
+                    assert y > 0
+                    assert y <= height
+                    valid_y = True
+                except:
+                    print('The number must be positive and less or equal to ' + str(height) + '.')
+            y -= 1
+            
+            if self.board[x,y,1] == 1:
+                print('That tile is already visible, please choose a different one.')
+            else:
+                valid = True
+        
+        return x, y
+            
+
+    def is_won (self):
+        pass
+    
+    
+    def is_lost (self):
+        pass
 
 
 
-game = Board(3,4,3)
-print(game)
+width, height, mines = Board.request_dimensions()
+game = Board(width, height, mines)
+while True:
+    game.print()
+    x, y = game.request_coordinates(width, height)
+    game.reveal (x,y)
