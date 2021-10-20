@@ -145,8 +145,21 @@ class Board:
         return False
     
     
-    def request_coordinates (self, width, height):
+    def final_reveal (self, winner_winner_chicken_dinner):
+        '''Reveals the whole board for when a player wins.'''
+        width, height, _ = np.shape(self.board)
+        for i in range(width):
+            for j in range(height):
+                if winner_winner_chicken_dinner:
+                    self.board[i,j,1] = 1
+                else:
+                    if self.board[i,j,0] == 9: self.board[i,j,1] = 1
+    
+    
+    def request_coordinates (self):
         '''Requests coordinates of a tile and validates them.'''
+        width, height, _ = np.shape(self.board)
+        
         valid = False
         while not valid:
             valid_x, valid_y = False, False
@@ -182,17 +195,73 @@ class Board:
             
 
     def is_won (self):
-        pass
+        '''Returns True only if all non-mine tiles are visible.'''
+        width, height, _ = np.shape(self.board)
+
+        for i in range(width):
+            for j in range(height):
+                if self.board[i,j,0] != 9 and self.board[i,j,1] == 0:
+                    return False
+        return True
     
     
     def is_lost (self):
-        pass
+        '''Returns True if any of the mines are visible.'''
+        width, height, _ = np.shape(self.board)
+
+        for i in range(width):
+            for j in range(height):
+                if self.board[i,j,0] == 9 and self.board[i,j,1] == 1:
+                    return True
+        return False
 
 
+    def new_game (self, winner_winner_chicken_dinner):
+        '''Asks if the user wants to have another game after game is over.
+        Returns True or False.'''
+        if winner_winner_chicken_dinner: message = 'Congratulations, you won!'
+        else:                            message = 'Oh no, you lost!'
 
-width, height, mines = Board.request_dimensions()
-game = Board(width, height, mines)
+        answer = ''
+        while answer.upper() not in ('Y', 'YES', 'N', 'NO'):
+            print('\n' + message + '\n')
+            answer = input('Fancy another game? ')
+        
+        return answer.upper() in ('Y', 'YES')
+
+
+#MAIN LOOP
 while True:
+    system('cls')
+    width, height, mines = Board.request_dimensions()
+    game = Board(width, height, mines)
     game.print()
-    x, y = game.request_coordinates(width, height)
-    game.reveal (x,y)
+
+    first = True
+    while True:
+        x, y = game.request_coordinates()
+        if first: #In the first iteration, if the tile contains a mine the board reshuffles.
+            while game.board[x,y,0] == 9:
+                game = Board(width, height, mines)
+            first = False
+        game.reveal (x,y)
+        game.print()
+        
+        winner = game.is_won()
+        loser  = game.is_lost()
+        if loser:
+            game.final_reveal (False)
+            game.print()
+            again = game.new_game(False)
+        elif winner:
+            game.final_reveal (True)
+            game.print()
+            again = game.new_game(True)
+        
+        if winner or loser:
+            if again:
+                break
+            else:
+                print('\n' + 'OK, have a nice day!')
+                system('pause')
+                quit()        
