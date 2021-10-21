@@ -1,12 +1,12 @@
 Simple:
   -Sudoku solver
-  -Minesweeper
+  -[Minesweeper]
   -Minesweeper w/ GUI
   -Something w/ instagram API
-  -Downloaded file name editor
+  -[Downloaded file renamer]
   -QR code generator
   -Snake game (w/ pygame or just text-based output)
-  -Min jumps
+  -[Min jumps]
 
 Mid:
   -Whatsapp bot
