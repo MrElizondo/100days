@@ -13,7 +13,8 @@ class Inconsistent(Exception):
 
 o = None
 test_easy = [[7,9,6,1,4,3,o,5,o],[4,5,o,o,o,o,1,3,o],[o,1,o,7,o,2,o,o,9],[9,3,1,o,o,o,o,o,5],[o,o,o,o,o,o,o,o,o],[5,o,o,o,o,o,4,9,1],[6,o,o,8,o,7,o,2,o],[o,7,8,o,o,o,o,1,4],[o,2,o,4,3,9,7,6,8]]
-test = [[1,7,o,o,9,o,3,o,8],[6,o,o,o,1,o,o,o,o],[o,5,4,2,o,o,o,o,6],[o,o,o,4,o,o,6,o,o],[5,o,o,o,7,o,o,o,2],[o,o,7,o,o,2,o,o,o],[8,o,o,o,o,6,7,3,o],[o,o,o,o,4,o,o,o,o],[4,o,6,o,5,o,o,8,1]]
+test = [[1,7,o,o,9,o,3,o,8],[o,o,o,o,1,o,o,o,o],[o,5,4,2,o,o,o,o,6],[o,o,o,4,o,o,6,o,o],[5,o,o,o,7,o,o,o,2],[o,o,7,o,o,2,o,o,o],[8,o,o,o,o,6,7,3,o],[o,o,o,o,4,o,o,o,o],[4,o,6,o,5,o,o,8,1]]
+
 
 ###AUXILIARY FUNCTIONS###
 def wait ():
@@ -51,6 +52,7 @@ def solved (safe):
     lst = [item for row in safe for item in row]
     solved = (None not in lst)
     return solved
+
 
 ###SECONDARY FUNCTIONS###
 def check_consistency (safe, poss = None):
@@ -196,6 +198,7 @@ def possibilities (safe):
                         poss = list_to_quadrant(poss, quad, q)
     return poss
 
+
 ###FINDING VALUES###
 def only_value (safe, poss):
     '''This function searches <poss> for positions where there is a single possible
@@ -254,6 +257,7 @@ def update_values (safe, poss):
     change = change1 or change2
     return safe, poss, change
 
+
 ###REDUCING POSSIBILITY SPACE###
 def aligned_values (poss):#not written
     '''This function searches each quadrant for values, for which all possible
@@ -297,6 +301,7 @@ def reduce_possibilities (poss):
         change = any([change1, change2, change3, change4])
     return poss
 
+
 ###LAST RESORT: RECURSIVE###
 def hypothesis (safe, poss):#not tested
     '''If all else fails, this function will form a low-risk (pick a position with
@@ -306,29 +311,24 @@ def hypothesis (safe, poss):#not tested
     If no possible values remain, an <Inconsistent> exception will be raised to be
     caught by the parent hypothesis function call. If the exception is caught by the
     main loop, the Sudoku will be considered unsolvable and the program will end.'''
-    length = [(len(elem) if elem != None else 9) for row in poss for elem in row if elem != None and len(elem) > 1]
     min = 9
-    for elem in length:
-        if min > elem: min = elem
-    t = length.index(min)
-    x = t% 9
-    y = t//9
+    for i in range(9):
+        for j in range(9):
+            if len(poss[i][j]) < min and len(poss[i][j]) > 1:
+                min = len(poss[i][j])
+                x, y = i, j
+    assert len(poss[x][y]) != 0
     
     while len(poss[x][y]) != 0:
         hypothesis = poss[x][y].pop(0)
         sudoku = deepcopy(safe)
         sudoku[x][y] = hypothesis
-        try: sudoku = solve (sudoku)
-        except Inconsistent: continue
+        try: sudoku = solve (sudoku, True)
+        except Inconsistent: pass
         if solved(sudoku): return sudoku
     
     raise Inconsistent('The hypothesis method found no consistent possibilities.')
 
-    #Launch solve loop with first guess, delete first guess
-    #If exception, repeat
-    #If no possibilities are left, raise exception
-    
-    return safe
 
 ###MAIN SOLVE LOOP###
 def solve (safe, view = False):
@@ -346,12 +346,12 @@ def solve (safe, view = False):
         if solved(safe): return safe
         elif change: continue
         
-        #safe = hypothesis (safe, poss)
+        safe = hypothesis (safe, poss)
         
 
 def launch (sudoku):
     print_state(sudoku)
-    try: sudoku = solve(sudoku, view = False)
+    try: sudoku = solve(sudoku, view = True)
     except Inconsistent as e:
         print(e.message)
         wait()
@@ -360,6 +360,8 @@ def launch (sudoku):
     print_state(sudoku)
     print('Sudoku is solved!')
     wait()
+    print('Program completed')
     
 
-launch(test_easy)
+###PROGRAM EXECUTION###
+launch(test)
