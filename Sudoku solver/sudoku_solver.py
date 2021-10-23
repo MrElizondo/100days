@@ -264,6 +264,17 @@ def aligned_values (poss):#not written
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
     change = False
+    #Create list of sets with line combinations like [{1,2,3}, {1,4,7}, ... ]
+    #For each quadrant, go through each number and create a new set with the positions in which it is possible.
+    #See if the set of positions is a subset of any of the line combination sets
+    #If so, identify the column or row and delete the number from the rest of quadrants
+    
+    #Sets:
+    #set()
+    #set.add(a)
+    #a.issubset(b) (is a a subset of b? b is bigger or equal)
+    #https://www.programiz.com/python-programming/set
+    
     return poss, change
 
     
@@ -303,7 +314,7 @@ def reduce_possibilities (poss):
 
 
 ###LAST RESORT: RECURSIVE###
-def hypothesis (safe, poss):#not tested
+def hypothesis (safe, poss):
     '''If all else fails, this function will form a low-risk (pick a position with
     the lowest number of possible values) hypothesis and try to solve the sudoku
     from then on. If inconsistencies are found, this function will remove that 
