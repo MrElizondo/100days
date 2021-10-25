@@ -1,10 +1,11 @@
-14-oct: Challenge setup
-15-oct: Min jumps program
-16-oct: Minesweeper __init__ method
-17-oct: Minesweeper __str__ method
-18-oct: Minesweeper methods written
-19-oct: Minesweeper up and running
-20-oct: File renamer done
-21-oct: Sudoku solver hypothesis function fixed
-22-oct: Sudoku solver aligned_values algorithm
+14-oct: Day   0 - Challenge setup
+15-oct: Day   1 - Min jumps program
+16-oct: Day   2 - Minesweeper __init__ method
+17-oct: Day   3 - Minesweeper __str__ method
+18-oct: Day   4 - Minesweeper methods written
+19-oct: Day   5 - Minesweeper up and running
+20-oct: Day   6 - File renamer done
+21-oct: Day   7 - Sudoku solver hypothesis function fixed
+22-oct: Day   8 - Sudoku solver aligned_values algorithm
 23-oct: pass
+24-oct: Day   9 - Sudoku solver aligned_values (still broken)
