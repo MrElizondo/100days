@@ -1,7 +1,6 @@
 Simple:
   -Sudoku solver
   -[Minesweeper]
-  -Minesweeper w/ GUI
   -Something w/ instagram API
   -[Downloaded file renamer]
   -QR code generator
@@ -9,6 +8,8 @@ Simple:
   -[Min jumps]
 
 Mid:
+  -GUI for minesweeper
+  -GUI for sudoku solver
   -Whatsapp bot
   -QR code reader
   -Solar system simulator
