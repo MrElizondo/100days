@@ -24,7 +24,7 @@ def wait ():
 
 def quadrant (position):
     '''Simple function that takes a position as a tuple and outputs the quadrant
-    number for that position.'''
+    number for that position. Quadrants range from 0 to 8.'''
     x, y = position
     quadrant = (x//3)*3 + y//3
     return quadrant
@@ -264,16 +264,31 @@ def aligned_values (poss):#not written
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
     change = False
-    #Create list of sets with line combinations like [{1,2,3}, {1,4,7}, ... ]
-    #For each quadrant, go through each number and create a new set with the positions in which it is possible.
-    #See if the set of positions is a subset of any of the line combination sets
-    #If so, identify the column or row and delete the number from the rest of quadrants
+    def delete_numbers (poss, col_or_row, i, num):
+        '''Deletes number <num> from <poss> in column or row <i>.'''
+        print('Deleting number {} from {} number {}'.format(num, col_or_row, i))
+        
+        return poss
     
-    #Sets:
-    #set()
-    #set.add(a)
-    #a.issubset(b) (is a a subset of b? b is bigger or equal)
-    #https://www.programiz.com/python-programming/set
+    columns = [{1,2,3}, {4,5,6}, {7,8,9}]
+    rows    = [{1,4,7}, {2,5,8}, {3,6,9}]
+    
+    positions = set()
+    for q in range(9):
+        quad = quadrant_to_list (poss, q)
+        for num in range(1,10):
+            for i in range(9):
+                if num in quad[i]:
+                    positions.add(num)
+            for i in range(3):
+                if columns[i].issuperset(positions):
+                    col_num = i + q%3
+                    poss = delete_numbers(poss, 'column', col_num, num)
+                    change = True
+                if rows[i].issuperset(positions):
+                    row_num = i + q//3
+                    poss = delete_numbers(poss, 'row', row_num, num)
+                    change = True
     
     return poss, change
 
