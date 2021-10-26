@@ -302,7 +302,22 @@ def aligned_values (safe, poss):#not written
                         change = change or change_
     return poss, change
 
-    
+
+def group_matching (lst):
+    '''This fuction gets fed a list of numbers and their possible positions (for
+    value_group), or vice-versa (for isolated_values). It then aggregates these lists
+    to find sets where amount of positions = amount of numbers, and deletes values
+    accordingly.'''
+    #1: Remove safe numbers (n are remaining).
+    #2: Create a list of all possible permutations of 2 to (n-1) positions, n elements.
+    #3: Aggregate lists into sets following the above permutations.
+    #4: Check if length of permutation (no. of positions) = length of set
+    #5: If so, remove elements (in value_group, remove the appropiate positions). Then
+    #   re-launch with the new list as input.
+    #6: If the list of permutations finishes, return value.
+    return lst, change
+
+
 def value_group (poss):#not written
     '''This function looks within a quadrant/row/column for n numbers that are only
     present in n positions. It then removes these values from the rest of the 
