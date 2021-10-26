@@ -259,37 +259,47 @@ def update_values (safe, poss):
 
 
 ###REDUCING POSSIBILITY SPACE###
-def aligned_values (poss):#not written
+def aligned_values (safe, poss):#not written
     '''This function searches each quadrant for values, for which all possible
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
     change = False
-    def delete_numbers (poss, col_or_row, i, num):
+    def delete_numbers (poss, col_or_row, i, num, q):
         '''Deletes number <num> from <poss> in column or row <i>.'''
-        print('Deleting number {} from {} number {}'.format(num, col_or_row, i))
-        
-        return poss
+        change = False
+        for j in range(9):
+            for k in range(9):
+                cond_col = col_or_row == 'column' and k == i and quadrant((j,k)) != q
+                cond_row = col_or_row == 'row'    and j == i and quadrant((j,k)) != q
+                if cond_col or cond_row:
+                    try:
+                        poss[j][k].remove(num)
+                        change = True
+                    except ValueError: continue
+        return poss, change
     
-    columns = [{1,2,3}, {4,5,6}, {7,8,9}]
-    rows    = [{1,4,7}, {2,5,8}, {3,6,9}]
+    rows    = [{0,1,2}, {3,4,5}, {6,7,8}]
+    columns = [{0,3,6}, {1,4,7}, {2,5,8}]
     
     positions = set()
     for q in range(9):
         quad = quadrant_to_list (poss, q)
+        quad_safe = quadrant_to_list (safe, q)
         for num in range(1,10):
-            for i in range(9):
-                if num in quad[i]:
-                    positions.add(num)
-            for i in range(3):
-                if columns[i].issuperset(positions):
-                    col_num = i + q%3
-                    poss = delete_numbers(poss, 'column', col_num, num)
-                    change = True
-                if rows[i].issuperset(positions):
-                    row_num = i + q//3
-                    poss = delete_numbers(poss, 'row', row_num, num)
-                    change = True
-    
+            positions.clear()
+            if num not in quad_safe:
+                for i in range(9):
+                    if num in quad[i]:
+                        positions.add(i)
+                for i in range(3):
+                    if positions.issubset(columns[i]):
+                        col_num = i + (q%3)*3
+                        poss, change_ = delete_numbers(poss, 'column', col_num, num, q)
+                        change = change or change_
+                    if positions.issubset(rows[i]):
+                        row_num = i + (q//3)*3
+                        poss, change_ = delete_numbers(poss, 'row', row_num, num, q)
+                        change = change or change_
     return poss, change
 
     
@@ -316,11 +326,11 @@ def mixed_groupings (poss):#not written
     return poss, change
 
 
-def reduce_possibilities (poss):
+def reduce_possibilities (safe, poss):
     '''Wrapper function.'''
     change = True
     while change:
-        poss, change1 = aligned_values (poss)
+        poss, change1 = aligned_values (safe, poss)
         poss, change2 = value_group (poss)
         poss, change3 = isolated_values (poss)
         poss, change4 = mixed_groupings (poss)
@@ -361,16 +371,18 @@ def solve (safe, view = False):
     '''Main solve loop. May get recursive calls between solve and hypothesis.'''
     while True:
         check_consistency (safe)
+        
+        if solved(safe): return safe
+        
         if view:
             print_state (safe)
             wait()
         
         poss = possibilities (safe)
-        poss = reduce_possibilities (poss)
-        
+        poss = reduce_possibilities (safe, poss)
+
         safe, poss, change = update_values (safe, poss)
-        if solved(safe): return safe
-        elif change: continue
+        if change: continue
         
         safe = hypothesis (safe, poss)
         
