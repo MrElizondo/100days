@@ -3,6 +3,7 @@ human techniques.'''
 #Fix check consistency
 import os
 from copy import deepcopy
+from itertools import combinations
 
 class Inconsistent(Exception):
     '''Custom error type to express that the Sudoku is inconsistent.'''
@@ -178,7 +179,7 @@ def possibilities (safe):
     for i in range(9):
         for j in range(9):
             if safe[i][j]:
-                poss[i][j] = []
+                poss[i][j] = [o]
                 value = safe[i][j]
                 q = quadrant((i,j))
                 quad = deepcopy(quadrant_to_list(poss, q))
@@ -259,7 +260,7 @@ def update_values (safe, poss):
 
 
 ###REDUCING POSSIBILITY SPACE###
-def aligned_values (safe, poss):#not written
+def aligned_values (safe, poss):
     '''This function searches each quadrant for values, for which all possible
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
@@ -303,19 +304,46 @@ def aligned_values (safe, poss):#not written
     return poss, change
 
 
-def group_matching (lst):
+def group_matching (positions):
     '''This fuction gets fed a list of numbers and their possible positions (for
     value_group), or vice-versa (for isolated_values). It then aggregates these lists
     to find sets where amount of positions = amount of numbers, and deletes values
     accordingly.'''
-    #1: Remove safe numbers (n are remaining).
-    #2: Create a list of all possible permutations of 2 to (n-1) positions, n elements.
-    #3: Aggregate lists into sets following the above permutations.
-    #4: Check if length of permutation (no. of positions) = length of set
-    #5: If so, remove elements (in value_group, remove the appropiate positions). Then
-    #   re-launch with the new list as input.
-    #6: If the list of permutations finishes, return value.
-    return lst, change
+    positions = deepcopy(positions)    
+    change = False
+    pos_set = set()
+    n = len(positions)
+    
+    for i in range(2,n):
+        combs = combinations(list(range(len(positions))), i)
+        for comb in combs:
+            pos_set.clear()
+            for elem in comb:
+                for j in positions[elem]:
+                    pos_set.add(j)
+
+            if len(pos_set) == len(comb): #grouping detected
+                change = True
+                for j in range(n):
+                    if j not in comb:
+                        for pos in pos_set:
+                            try: positions[j].remove(pos)
+                            except ValueError: pass
+                
+                new_positions = deepcopy(positions) #take grouped and non-group values appart
+                temp_grouping = []
+                comb_ = list(comb)
+                comb_.reverse()
+                for j in comb_:
+                    temp_grouping.append(new_positions.pop(j))
+                    
+                new_positions, _ = group_matching(new_positions) #launch again to catch additional groupings
+                
+                temp_grouping.reverse() #put all values together again
+                for j in comb:
+                    new_positions.insert(j, temp_grouping[0])
+                return new_positions, change
+    return positions, change
 
 
 def value_group (poss):#not written
@@ -374,7 +402,7 @@ def hypothesis (safe, poss):
         hypothesis = poss[x][y].pop(0)
         sudoku = deepcopy(safe)
         sudoku[x][y] = hypothesis
-        try: sudoku = solve (sudoku, True)
+        try: sudoku = solve (sudoku)
         except Inconsistent: pass
         if solved(sudoku): return sudoku
     
@@ -404,7 +432,7 @@ def solve (safe, view = False):
 
 def launch (sudoku):
     print_state(sudoku)
-    try: sudoku = solve(sudoku, view = True)
+    try: sudoku = solve(sudoku, view = False)
     except Inconsistent as e:
         print(e.message)
         wait()
