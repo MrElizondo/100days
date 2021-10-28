@@ -179,7 +179,7 @@ def possibilities (safe):
     for i in range(9):
         for j in range(9):
             if safe[i][j]:
-                poss[i][j] = [o]
+                poss[i][j] = []
                 value = safe[i][j]
                 q = quadrant((i,j))
                 quad = deepcopy(quadrant_to_list(poss, q))
@@ -314,8 +314,14 @@ def group_matching (positions):
     pos_set = set()
     n = len(positions)
     
+    non_empty = []
+    for i in range(len(positions)):
+        if positions[i]: non_empty.append(i)
+    
+    if non_empty == []: return positions, False
+    
     for i in range(2,n):
-        combs = combinations(list(range(len(positions))), i)
+        combs = combinations(non_empty, i)
         for comb in combs:
             pos_set.clear()
             for elem in comb:
@@ -346,11 +352,44 @@ def group_matching (positions):
     return positions, change
 
 
-def value_group (poss):#not written
+def value_group (poss):
     '''This function looks within a quadrant/row/column for n numbers that are only
     present in n positions. It then removes these values from the rest of the 
     quadrant/row/column.'''
     change = False
+
+    print(poss)
+    #Rows
+    for i in range(9):
+        row = poss[i]
+        row, change_ = group_matching(row)
+        
+        change = change or change_
+        poss[i] = row
+    print(poss)
+    
+    #Columns
+    for i in range(9):
+        column = [row[i] for row in poss]
+        column, change_ = group_matching(column)
+        change = change or change_
+
+        for j in range(9):
+            row = poss[j]
+            row.pop(i)
+            row.insert(i,column[j])
+            poss[j] = row
+    print(poss)
+    
+    #Quadrants
+    for i in range(9):
+        quad = quadrant_to_list(poss,i)
+        quad, change_ = group_matching(quad)
+        change = change or change_
+
+        poss = list_to_quadrant(poss,quad,i)
+    print(poss)
+    
     return poss, change
 
 
@@ -362,13 +401,6 @@ def isolated_values (poss):#not written
     return poss, change
 
 
-def mixed_groupings (poss):#not written
-    '''This function looks for value groupings along the whole matrix.
-    "Groupings" and algorithm for this yet to be defined.'''
-    change = False
-    return poss, change
-
-
 def reduce_possibilities (safe, poss):
     '''Wrapper function.'''
     change = True
@@ -376,13 +408,13 @@ def reduce_possibilities (safe, poss):
         poss, change1 = aligned_values (safe, poss)
         poss, change2 = value_group (poss)
         poss, change3 = isolated_values (poss)
-        poss, change4 = mixed_groupings (poss)
-        change = any([change1, change2, change3, change4])
+        change = any([change1, change2, change3])
+        change = False
     return poss
 
 
 ###LAST RESORT: RECURSIVE###
-def hypothesis (safe, poss):
+def hypothesis (safe, poss, view):
     '''If all else fails, this function will form a low-risk (pick a position with
     the lowest number of possible values) hypothesis and try to solve the sudoku
     from then on. If inconsistencies are found, this function will remove that 
@@ -402,7 +434,7 @@ def hypothesis (safe, poss):
         hypothesis = poss[x][y].pop(0)
         sudoku = deepcopy(safe)
         sudoku[x][y] = hypothesis
-        try: sudoku = solve (sudoku)
+        try: sudoku = solve (sudoku, view, view)
         except Inconsistent: pass
         if solved(sudoku): return sudoku
     
@@ -410,7 +442,7 @@ def hypothesis (safe, poss):
 
 
 ###MAIN SOLVE LOOP###
-def solve (safe, view = False):
+def solve (safe, view = False, viewall = False):
     '''Main solve loop. May get recursive calls between solve and hypothesis.'''
     while True:
         check_consistency (safe)
@@ -423,16 +455,17 @@ def solve (safe, view = False):
         
         poss = possibilities (safe)
         poss = reduce_possibilities (safe, poss)
+        quit()
 
         safe, poss, change = update_values (safe, poss)
         if change: continue
         
-        safe = hypothesis (safe, poss)
+        safe = hypothesis (safe, poss, viewall)
         
 
 def launch (sudoku):
     print_state(sudoku)
-    try: sudoku = solve(sudoku, view = False)
+    try: sudoku = solve(sudoku, view = True, viewall = False)
     except Inconsistent as e:
         print(e.message)
         wait()
@@ -445,4 +478,4 @@ def launch (sudoku):
     
 
 ###PROGRAM EXECUTION###
-launch(test)
+#launch(test)
