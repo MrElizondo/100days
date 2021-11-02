@@ -309,7 +309,7 @@ def group_matching (positions):
     value_group), or vice-versa (for isolated_values). It then aggregates these lists
     to find sets where amount of positions = amount of numbers, and deletes values
     accordingly.'''
-    positions = deepcopy(positions)    
+    positions = deepcopy(positions)
     change = False
     pos_set = set()
     n = len(positions)
@@ -342,12 +342,12 @@ def group_matching (positions):
                 comb_.reverse()
                 for j in comb_:
                     temp_grouping.append(new_positions.pop(j))
-                    
+                
                 new_positions, _ = group_matching(new_positions) #launch again to catch additional groupings
                 
                 temp_grouping.reverse() #put all values together again
                 for j in comb:
-                    new_positions.insert(j, temp_grouping[0])
+                    new_positions.insert(j, temp_grouping.pop(0))
                 return new_positions, change
     return positions, change
 
@@ -358,7 +358,6 @@ def value_group (poss):
     quadrant/row/column.'''
     change = False
 
-    print(poss)
     #Rows
     for i in range(9):
         row = poss[i]
@@ -366,7 +365,6 @@ def value_group (poss):
         
         change = change or change_
         poss[i] = row
-    print(poss)
     
     #Columns
     for i in range(9):
@@ -379,7 +377,6 @@ def value_group (poss):
             row.pop(i)
             row.insert(i,column[j])
             poss[j] = row
-    print(poss)
     
     #Quadrants
     for i in range(9):
@@ -388,7 +385,6 @@ def value_group (poss):
         change = change or change_
 
         poss = list_to_quadrant(poss,quad,i)
-    print(poss)
     
     return poss, change
 
@@ -455,7 +451,6 @@ def solve (safe, view = False, viewall = False):
         
         poss = possibilities (safe)
         poss = reduce_possibilities (safe, poss)
-        quit()
 
         safe, poss, change = update_values (safe, poss)
         if change: continue
@@ -478,4 +473,4 @@ def launch (sudoku):
     
 
 ###PROGRAM EXECUTION###
-#launch(test)
+launch(test)
