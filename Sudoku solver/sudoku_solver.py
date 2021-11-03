@@ -1,6 +1,5 @@
 '''This program attempts to solve sudokus by applying a sequence of common
 human techniques.'''
-#Fix check consistency
 import os
 from copy import deepcopy
 from itertools import combinations
