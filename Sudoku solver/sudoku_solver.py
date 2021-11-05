@@ -263,20 +263,16 @@ def aligned_values (safe, poss):
     '''This function searches each quadrant for values, for which all possible
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
-    change = False
     def delete_numbers (poss, col_or_row, i, num, q):
         '''Deletes number <num> from <poss> in column or row <i>.'''
-        change = False
         for j in range(9):
             for k in range(9):
                 cond_col = col_or_row == 'column' and k == i and quadrant((j,k)) != q
                 cond_row = col_or_row == 'row'    and j == i and quadrant((j,k)) != q
                 if cond_col or cond_row:
-                    try:
-                        poss[j][k].remove(num)
-                        change = True
+                    try: poss[j][k].remove(num)
                     except ValueError: continue
-        return poss, change
+        return poss
     
     rows    = [{0,1,2}, {3,4,5}, {6,7,8}]
     columns = [{0,3,6}, {1,4,7}, {2,5,8}]
@@ -294,13 +290,11 @@ def aligned_values (safe, poss):
                 for i in range(3):
                     if positions.issubset(columns[i]):
                         col_num = i + (q%3)*3
-                        poss, change_ = delete_numbers(poss, 'column', col_num, num, q)
-                        change = change or change_
+                        poss = delete_numbers(poss, 'column', col_num, num, q)
                     if positions.issubset(rows[i]):
                         row_num = i + (q//3)*3
-                        poss, change_ = delete_numbers(poss, 'row', row_num, num, q)
-                        change = change or change_
-    return poss, change
+                        poss = delete_numbers(poss, 'row', row_num, num, q)
+    return poss
 
 
 def group_matching (positions):
@@ -309,7 +303,6 @@ def group_matching (positions):
     to find sets where amount of positions = amount of numbers, and deletes values
     accordingly.'''
     positions = deepcopy(positions)
-    change = False
     pos_set = set()
     n = len(positions)
     
@@ -317,7 +310,7 @@ def group_matching (positions):
     for i in range(len(positions)):
         if positions[i]: non_empty.append(i)
     
-    if non_empty == []: return positions, False
+    if non_empty == []: return positions
     
     for i in range(2,n):
         combs = combinations(non_empty, i)
@@ -328,7 +321,6 @@ def group_matching (positions):
                     pos_set.add(j)
 
             if len(pos_set) == len(comb): #grouping detected
-                change = True
                 for j in range(n):
                     if j not in comb:
                         for pos in pos_set:
@@ -342,34 +334,31 @@ def group_matching (positions):
                 for j in comb_:
                     temp_grouping.append(new_positions.pop(j))
                 
-                new_positions, _ = group_matching(new_positions) #launch again to catch additional groupings
+                new_positions = list(group_matching(new_positions)) #launch again to catch additional groupings
                 
                 temp_grouping.reverse() #put all values together again
                 for j in comb:
                     new_positions.insert(j, temp_grouping.pop(0))
-                return new_positions, change
-    return positions, change
+                return new_positions
+    return positions
 
 
 def value_group (poss):
     '''This function looks within a quadrant/row/column for n numbers that are only
     present in n positions. It then removes these values from the rest of the 
     quadrant/row/column.'''
-    change = False
 
     #Rows
     for i in range(9):
         row = poss[i]
-        row, change_ = group_matching(row)
+        row = group_matching(row)
         
-        change = change or change_
         poss[i] = row
     
     #Columns
     for i in range(9):
         column = [row[i] for row in poss]
-        column, change_ = group_matching(column)
-        change = change or change_
+        column = group_matching(column)
 
         for j in range(9):
             row = poss[j]
@@ -380,31 +369,65 @@ def value_group (poss):
     #Quadrants
     for i in range(9):
         quad = quadrant_to_list(poss,i)
-        quad, change_ = group_matching(quad)
-        change = change or change_
+        quad = group_matching(quad)
 
         poss = list_to_quadrant(poss,quad,i)
     
-    return poss, change
+    return poss
 
 
 def isolated_values (poss):#not written
     '''This function looks within a quadrant/row/column for groups of n numbers that
     are the only possibilities in n positions. It then removes these values from the
     rest of the quadrant/row/column.'''
-    change = False
-    return poss, change
+        
+    def one_to_other (one):
+        '''Transforms from numbers:positions to positions:numbers and vice-versa.'''
+        other = [[],[],[],[],[],[],[],[],[]]
+        for posit in range(9):
+            for value in range(1,10):
+                if value in one[posit]:
+                    other[value-1].append(posit+1)
+        return other
+    
+    #Rows
+    for i in range(9):
+        row = poss[i]
+        row = one_to_other(row)
+        row = group_matching(row)
+        
+        poss[i] = one_to_other(row)
+    
+    #Columns
+    for i in range(9):
+        column = [row[i] for row in poss]
+        column = one_to_other(column)
+        column = group_matching(column)
+        column = one_to_other(column)
+
+        for j in range(9):
+            row = poss[j]
+            row.pop(i)
+            row.insert(i,column[j])
+            poss[j] = row
+    
+    #Quadrants
+    for i in range(9):
+        quad = quadrant_to_list(poss,i)
+        quad = one_to_other(quad)
+        quad = group_matching(quad)
+        quad = one_to_other(quad)
+
+        poss = list_to_quadrant(poss,quad,i)
+    
+    return poss
 
 
 def reduce_possibilities (safe, poss):
     '''Wrapper function.'''
-    change = True
-    while change:
-        poss, change1 = aligned_values (safe, poss)
-        poss, change2 = value_group (poss)
-        poss, change3 = isolated_values (poss)
-        change = any([change1, change2, change3])
-        change = False
+    poss = aligned_values (safe, poss)
+    poss = value_group (poss)
+    poss = isolated_values (poss)
     return poss
 
 
@@ -418,6 +441,8 @@ def hypothesis (safe, poss, view):
     caught by the parent hypothesis function call. If the exception is caught by the
     main loop, the Sudoku will be considered unsolvable and the program will end.'''
     min = 9
+    x,y = 0,0
+    print(poss)
     for i in range(9):
         for j in range(9):
             if len(poss[i][j]) < min and len(poss[i][j]) > 1:
@@ -440,6 +465,7 @@ def hypothesis (safe, poss, view):
 def solve (safe, view = False, viewall = False):
     '''Main solve loop. May get recursive calls between solve and hypothesis.'''
     while True:
+        safe_ = deepcopy(safe)
         check_consistency (safe)
         
         if solved(safe): return safe
@@ -449,9 +475,13 @@ def solve (safe, view = False, viewall = False):
             wait()
         
         poss = possibilities (safe)
-        poss = reduce_possibilities (safe, poss)
+        poss_ =  []
+        while poss != poss_:
+            poss_ = deepcopy(poss)
+            poss = reduce_possibilities (safe, poss)
 
         safe, poss, change = update_values (safe, poss)
+        
         if change: continue
         
         safe = hypothesis (safe, poss, viewall)
