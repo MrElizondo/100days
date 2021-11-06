@@ -376,7 +376,7 @@ def value_group (poss):
     return poss
 
 
-def isolated_values (poss):#not written
+def isolated_values (poss):
     '''This function looks within a quadrant/row/column for groups of n numbers that
     are the only possibilities in n positions. It then removes these values from the
     rest of the quadrant/row/column.'''
