@@ -128,36 +128,115 @@ def check_consistency (safe, poss = None):
     return True
 
 
+def boxes_array(n = 1):
+    '''Outputs a 2D array with the unicode numbers to create a box design,
+    with the size to contain 1 (n=1) or 9 (n=3) numbers.'''
+
+    shapes = {'top_left': 9556, 'top_right': 9559, 'top_t_single': 9572, 'top_t_double': 9574,
+        'left_t_single': 9567, 'left_t_double': 9568, 'right_t_single': 9570, 'right_t_double': 9571,
+        'bot_left': 9562, 'bot_right': 9565, 'bot_t_single': 9575, 'bot_t_double': 9577,
+        'vert_single': 9474, 'vert_double': 9553, 'hori_single': 9472, 'hori_double': 9552,
+        'cross_single': 9532, 'cross_double': 9580, 'vert_double_hori_single': 9579, 'hori_double_vert_single': 9578, 'space': 32}
+    
+    #Basic shape
+    boxes = []
+    line = [shapes['hori_single']]*(2*n+1)
+    line.insert(0, shapes['cross_single'])
+    line = line * 9
+    line.append(shapes['cross_single'])
+    boxes.append(line)
+    
+    number_line = [shapes['space']]*(2*n+1)
+    number_line.insert(0, shapes['vert_single'])
+    number_line = number_line * 9
+    number_line.append(shapes['vert_single'])
+    
+    for i in range(9):
+        for j in range(n):
+            boxes.append(number_line)
+        boxes.append(line)
+    
+    #Double line in the outside
+    #Top
+    line = [shapes['hori_double']]*(2*n+1)
+    line.append(shapes['top_t_single'])
+    line = line*3
+    line[-1] = shapes['top_t_double']
+    line = line*3
+    line[-1] = shapes['top_right']
+    line.insert(0,shapes['top_left'])
+    boxes[0] = line
+    
+    #Mid
+    for i in range(1,len(boxes)-1):
+        if i % (3*n+3) == 0:
+            line = [shapes['hori_double']]*(2*n+1)
+            line.append(shapes['hori_double_vert_single'])
+            line = line*3
+            line[-1] = shapes['cross_double']
+            line = line*3
+            line[-1] = shapes['right_t_double']
+            line.insert(0,shapes['left_t_double'])
+            boxes[i] = line
+        elif i % (n+1) == 0:
+            boxes[i][0] = shapes['left_t_single']
+            boxes[i][-1] = shapes['right_t_single']
+            for j in range(1,len(boxes[i])-1):
+                if j % (6*n+6) == 0:
+                    boxes[i][j] = shapes['vert_double_hori_single']
+        else:
+            boxes[i][0] = shapes['vert_double']
+            boxes[i][-1] = shapes['vert_double']
+            for j in range(1,len(boxes[i])-1):
+                if j % (6*n+6) == 0:
+                    boxes[i][j] = shapes['vert_double']
+
+    
+    #Bot
+    line = [shapes['hori_double']]*(2*n+1)
+    line.append(shapes['bot_t_single'])
+    line = line*3
+    line[-1] = shapes['bot_t_double']
+    line = line*3
+    line[-1] = shapes['bot_right']
+    line.insert(0,shapes['bot_left'])
+    boxes[-1] = line
+    return boxes
+
+
 def state (safe):
     '''Outputs the state of the sudoku as a multi-line string.'''
     #Box framework. Yep, tons of manual work.
-    boxes = [
-        [9556,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9559],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9568,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9580,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9580,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9571],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9568,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9580,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9580,9552,9552,9552,9578,9552,9552,9552,9578,9552,9552,9552,9571],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9567,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9579,9472,9472,9472,9532,9472,9472,9472,9532,9472,9472,9472,9570],
-        [9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553,32,32,32,9474,32,32,32,9474,32,32,32,9553],
-        [9562,9552,9552,9552,9575,9552,9552,9552,9575,9552,9552,9552,9577,9552,9552,9552,9575,9552,9552,9552,9575,9552,9552,9552,9577,9552,9552,9552,9575,9552,9552,9552,9575,9552,9552,9552,9565],
-        ]
+    boxes = boxes_array(1)
     
     #Substitute numbers
     for i in range(9):
         for j in range(9):
             if safe[i][j]: boxes[i*2+1][j*4+2] = safe[i][j]+48
             else: boxes[i*2+1][j*4+2] = 32
+    
+    #Turn into a multi-line string
+    state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
+    return state
+
+
+def state_poss (poss):
+    '''Outputs the state of the sudoku's poss matrix as a multi-line string.'''
+    boxes = boxes_array(3)
+    
+    n = 3
+    
+    #Substitute numbers
+    for i in range(9):
+        for j in range(9):
+            print(poss[i][j])
+            for k in range(1,10):
+                if k in poss[i][j]:
+                    k -= 1
+                    x = (n+1)*i   + 1 + k//3
+                    y = (2*n+2)*j + 2 + 2*k%3
+                    boxes[x][y] = k+1 + 48
+            #else: boxes[i*2+1][j*4+2] = 32
     
     #Turn into a multi-line string
     state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
@@ -442,7 +521,7 @@ def hypothesis (safe, poss, view):
     main loop, the Sudoku will be considered unsolvable and the program will end.'''
     min = 9
     x,y = 0,0
-    print(poss)
+#    print(poss)
     for i in range(9):
         for j in range(9):
             if len(poss[i][j]) < min and len(poss[i][j]) > 1:
@@ -479,11 +558,14 @@ def solve (safe, view = False, viewall = False):
         while poss != poss_:
             poss_ = deepcopy(poss)
             poss = reduce_possibilities (safe, poss)
-
+        
+        print(poss)
+        
         safe, poss, change = update_values (safe, poss)
         
         if change: continue
         
+        print('\nLaunching hypothesis')
         safe = hypothesis (safe, poss, viewall)
         
 
@@ -502,4 +584,4 @@ def launch (sudoku):
     
 
 ###PROGRAM EXECUTION###
-launch(test)
+#launch(test)
