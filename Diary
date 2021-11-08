@@ -5,14 +5,15 @@
 18-oct: Day   4 - Minesweeper methods written
 19-oct: Day   5 - Minesweeper up and running
 20-oct: Day   6 - File renamer done
-21-oct: Day   7 - Sudoku solver hypothesis function fixed
-22-oct: Day   8 - Sudoku solver aligned_values algorithm
+21-oct: Day   7 - Sudoku solver - hypothesis function fixed
+22-oct: Day   8 - Sudoku solver - aligned_values algorithm
 23-oct: pass
-24-oct: Day   9 - Sudoku solver aligned_values (still broken)
-25-oct: Day  10 - Sudoku solver aligned_values fixed and finished
-26-oct: Day  11 - Sudoku solver common approach to next two functions
-27-oct: Day  12 - Sudoku solver group_matching shared child function
-28-oct: Day  13 - Sudoku solver group_matching broken, still not fixed
+24-oct: Day   9 - Sudoku solver - aligned_values (still broken)
+25-oct: Day  10 - Sudoku solver - aligned_values fixed and finished
+26-oct: Day  11 - Sudoku solver - common approach to next two functions
+27-oct: Day  12 - Sudoku solver - group_matching shared child function
+28-oct: Day  13 - Sudoku solver - group_matching broken, still not fixed
 29-oct to 4-nov - Vacation
- 2-nov: Day  14 - Sudoku solver group_matching fixed
- 5-nov: Day  15 - Sudoku solver isolated_values, hypothesis broken
+ 2-nov: Day  14 - Sudoku solver - group_matching fixed
+ 5-nov: Day  15 - Sudoku solver - isolated_values, hypothesis broken
+ 7-nov: Day  16 - Sudoku solver - codified box drawing, created state_poss, state broken
