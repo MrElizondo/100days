@@ -206,6 +206,7 @@ def boxes_array(n = 1):
 
 def state (safe):
     '''Outputs the state of the sudoku as a multi-line string.'''
+    #Box framework. Yep, tons of manual work.
     boxes = boxes_array(1)
     
     #Substitute numbers
@@ -570,7 +571,7 @@ def solve (safe, view = False, viewall = False):
 
 def launch (sudoku):
     print_state(sudoku)
-    try: sudoku = solve(sudoku, view = True, viewall = True)
+    try: sudoku = solve(sudoku, view = True, viewall = False)
     except Inconsistent as e:
         print(e.message)
         wait()
@@ -583,4 +584,4 @@ def launch (sudoku):
     
 
 ###PROGRAM EXECUTION###
-launch(test_easy)
+#launch(test)
