@@ -206,17 +206,19 @@ def boxes_array(n = 1):
 
 def state (safe):
     '''Outputs the state of the sudoku as a multi-line string.'''
-    #Box framework. Yep, tons of manual work.
     boxes = boxes_array(1)
     
     #Substitute numbers
     for i in range(9):
         for j in range(9):
-            if safe[i][j]: boxes[i*2+1][j*4+2] = safe[i][j]+48
-            else: boxes[i*2+1][j*4+2] = 32
+            if safe[i][j]:
+                boxes[1+i*2][2+j*4] = safe[i][j] + 48
     
     #Turn into a multi-line string
-    state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
+    state = ''
+    for line in boxes:
+        state += ''.join([chr(i) for i in line])
+        state += '\n'
     return state
 
 
@@ -229,14 +231,13 @@ def state_poss (poss):
     #Substitute numbers
     for i in range(9):
         for j in range(9):
-            print(poss[i][j])
             for k in range(1,10):
                 if k in poss[i][j]:
                     k -= 1
                     x = (n+1)*i   + 1 + k//3
                     y = (2*n+2)*j + 2 + 2*k%3
                     boxes[x][y] = k+1 + 48
-            #else: boxes[i*2+1][j*4+2] = 32
+            else: boxes[i*2+1][j*4+2] = 32 #not changed
     
     #Turn into a multi-line string
     state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
@@ -571,7 +572,7 @@ def solve (safe, view = False, viewall = False):
 
 def launch (sudoku):
     print_state(sudoku)
-    try: sudoku = solve(sudoku, view = True, viewall = False)
+    try: sudoku = solve(sudoku, view = True, viewall = True)
     except Inconsistent as e:
         print(e.message)
         wait()
@@ -584,4 +585,4 @@ def launch (sudoku):
     
 
 ###PROGRAM EXECUTION###
-#launch(test)
+launch(test_easy)
