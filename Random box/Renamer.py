@@ -2,6 +2,9 @@
 
 import os
 
+#os.rename(old_name, new_name)
+#root, dirs, files = os.walk(path, topdown = True)
+
 files = list(os.scandir(path='.'))
 quality_id = ('2160p', '1080p', '720p', '540p', '480p', 'XviD', 'HDTV', 'WEB')
 
@@ -22,8 +25,6 @@ for file in files:
             new_name = old_name[:idx-1]
             new_name = new_name.replace('.',' ')
             new_name = new_name.title()
-            while new_name[-1] == ' ':
-                new_name = new_name[:-1]
             os.rename(old_name + extension, new_name + extension)
 
 print(str(count) + ' files renamed.')
