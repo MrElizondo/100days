@@ -19,3 +19,5 @@
  7-nov: Day  16 - Sudoku solver - codified box drawing, created state_poss, state broken
  8-nov: Day  17 - Sudoku solver - tried to fix state, failed and even more confused
  9-nov: Day  18 - Sudoku solver - hardcoded boxes_array, both state and state_poss working
+10-nov: Day  19 - Renamer - twicked
+				  
