@@ -1,23 +1,25 @@
-14-oct: Day   0 - Challenge setup
-15-oct: Day   1 - Min jumps program
-16-oct: Day   2 - Minesweeper __init__ method
-17-oct: Day   3 - Minesweeper __str__ method
-18-oct: Day   4 - Minesweeper methods written
-19-oct: Day   5 - Minesweeper up and running
-20-oct: Day   6 - File renamer done
-21-oct: Day   7 - Sudoku solver - hypothesis function fixed
-22-oct: Day   8 - Sudoku solver - aligned_values algorithm
+14-oct: Day  0 - Challenge setup
+15-oct: Day  1 - Min jumps program
+16-oct: Day  2 - Minesweeper __init__ method
+17-oct: Day  3 - Minesweeper __str__ method
+18-oct: Day  4 - Minesweeper methods written
+19-oct: Day  5 - Minesweeper up and running
+20-oct: Day  6 - File renamer done
+21-oct: Day  7 - Sudoku solver - hypothesis function fixed
+22-oct: Day  8 - Sudoku solver - aligned_values algorithm
 23-oct: pass
-24-oct: Day   9 - Sudoku solver - aligned_values (still broken)
-25-oct: Day  10 - Sudoku solver - aligned_values fixed and finished
-26-oct: Day  11 - Sudoku solver - common approach to next two functions
-27-oct: Day  12 - Sudoku solver - group_matching shared child function
-28-oct: Day  13 - Sudoku solver - group_matching broken, still not fixed
+24-oct: Day  9 - Sudoku solver - aligned_values (still broken)
+25-oct: Day 10 - Sudoku solver - aligned_values fixed and finished
+26-oct: Day 11 - Sudoku solver - common approach to next two functions
+27-oct: Day 12 - Sudoku solver - group_matching shared child function
+28-oct: Day 13 - Sudoku solver - group_matching broken, still not fixed
 29-oct to 4-nov - Vacation
- 2-nov: Day  14 - Sudoku solver - group_matching fixed
- 5-nov: Day  15 - Sudoku solver - isolated_values, hypothesis broken
- 7-nov: Day  16 - Sudoku solver - codified box drawing, created state_poss, state broken
- 8-nov: Day  17 - Sudoku solver - tried to fix state, failed and even more confused
- 9-nov: Day  18 - Sudoku solver - hardcoded boxes_array, both state and state_poss working
-10-nov: Day  19 - Renamer - tiny change
+ 2-nov: Day 14 - Sudoku solver - group_matching fixed
+ 5-nov: Day 15 - Sudoku solver - isolated_values, hypothesis broken
+ 7-nov: Day 16 - Sudoku solver - codified box drawing, created state_poss, state broken
+ 8-nov: Day 17 - Sudoku solver - tried to fix state, failed and even more confused
+ 9-nov: Day 18 - Sudoku solver - hardcoded boxes_array, both state and state_poss working
+10-nov: Day 19 - Renamer - tiny change
 11-nov: pass
+12-nov: pass
+13-nov: Day 20 - Screen rotation - base code off StackOverflow
