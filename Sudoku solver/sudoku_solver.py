@@ -6,7 +6,6 @@ from itertools import combinations
 
 class Inconsistent(Exception):
     '''Custom error type to express that the Sudoku is inconsistent.'''
-    #Must add message that indicates what triggered the inconsistency.
     def __init__(self, message):
         self.message = message
 
@@ -48,6 +47,7 @@ def quadrant (position):
 
 def quadrant_to_list (poss, q):
     '''Converts a given quadrant from <poss> or <safe> into a list.'''
+    poss = deepcopy(poss)
     x = (q//3)*3
     y = (q %3)*3
     lst = [poss[x+i//3][y+i%3] for i in range(9)]
@@ -56,6 +56,7 @@ def quadrant_to_list (poss, q):
 
 def list_to_quadrant (poss, lst, q):
     '''Converts a given lst into a quadrant form and integrates it into poss.'''
+    poss = deepcopy(poss)
     x = (q//3)*3
     y = (q %3)*3
     for j in range (3):
@@ -65,6 +66,7 @@ def list_to_quadrant (poss, lst, q):
 
 def solved (safe):
     '''Checks if the sudoku is solved.'''
+    safe = deepcopy(safe)
     lst = [item for row in safe for item in row]
     solved = (None not in lst)
     return solved
@@ -78,6 +80,8 @@ def check_consistency (safe, poss = None):
     The function then checks <poss> for consistency: no possible numbers for a position,
     no possible position for a number in a quadrant, row or column.
     Returns a boolean value.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
     
     #####<safe>#####
     def repeats (lst):
@@ -290,6 +294,7 @@ def boxes_array(n = 1):
 
 def state (safe):
     '''Outputs the state of the sudoku as a multi-line string.'''
+    safe = deepcopy(safe)
     boxes = boxes_array()
     
     #Substitute numbers
@@ -308,6 +313,7 @@ def state (safe):
 
 def state_poss (poss):
     '''Outputs the state of the sudoku's poss matrix as a multi-line string.'''
+    poss = deepcopy(poss)
     boxes = boxes_array(3)
     
     n = 3
@@ -327,20 +333,16 @@ def state_poss (poss):
     return state
 
 
-def print_state (safe):
-    os.system('cls')
-    print(state(safe))
-    
-
 def possibilities (safe):
     '''This function creates <poss> matrix with a list of possible numbers for each
     position, naively considering the numbers present in the quadrant, row and
     column pertaining to that position. Progressively subtracts numbers from a list.'''
+    safe = deepcopy(safe)
     basic = [1,2,3,4,5,6,7,8,9]
     poss = [[basic for _ in range(9)] for _ in range(9)]
     for i in range(9):
         for j in range(9):
-            if safe[i][j]:
+            if safe[i][j] != None:
                 poss[i][j] = []
                 value = safe[i][j]
                 q = quadrant((i,j))
@@ -367,6 +369,8 @@ def only_value (safe, poss):
     '''This function searches <poss> for positions where there is a single possible
     value, and updates <safe> with those values. Change is True is such positions
     are found, False otherwise.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
     change = False
     for i in range(9):
         for j in range(9):
@@ -380,6 +384,8 @@ def only_position (safe, poss):
     '''This function looks for values in <poss> that have a single possible position
     in either a quadrant, a row or a column, and sets them on <safe>. Change is
     True is such positions are found, False otherwise.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
     change = False
     def check (lst_safe, lst_poss):
         change = False
@@ -415,6 +421,9 @@ def only_position (safe, poss):
 
 
 def update_values (safe, poss):
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
+    
     safe, poss, change1 = only_value(safe,poss)
     safe, poss, change2 = only_position(safe,poss)
     change = change1 or change2
@@ -426,6 +435,9 @@ def aligned_values (safe, poss):
     '''This function searches each quadrant for values, for which all possible
     possitions fall into a row or a column, and then removes that value from
     that row or column in other quadrants.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
+    
     def delete_numbers (poss, col_or_row, i, num, q):
         '''Deletes number <num> from <poss> in column or row <i>.'''
         for j in range(9):
@@ -510,7 +522,8 @@ def value_group (poss):
     '''This function looks within a quadrant/row/column for n numbers that are only
     present in n positions. It then removes these values from the rest of the 
     quadrant/row/column.'''
-
+    poss = deepcopy(poss)
+    
     #Rows
     for i in range(9):
         row = poss[i]
@@ -543,7 +556,8 @@ def isolated_values (poss):
     '''This function looks within a quadrant/row/column for groups of n numbers that
     are the only possibilities in n positions. It then removes these values from the
     rest of the quadrant/row/column.'''
-        
+    poss = deepcopy(poss)
+    
     def one_to_other (one):
         '''Transforms from numbers:positions to positions:numbers and vice-versa.'''
         other = [[],[],[],[],[],[],[],[],[]]
@@ -588,6 +602,9 @@ def isolated_values (poss):
 
 def reduce_possibilities (safe, poss):
     '''Wrapper function.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
+    
     poss = aligned_values (safe, poss)
     poss = value_group (poss)
     poss = isolated_values (poss)
@@ -603,6 +620,9 @@ def hypothesis (safe, poss, view):
     If no possible values remain, an <Inconsistent> exception will be raised to be
     caught by the parent hypothesis function call. If the exception is caught by the
     main loop, the Sudoku will be considered unsolvable and the program will end.'''
+    safe = deepcopy(safe)
+    poss = deepcopy(poss)
+    
     min = 9
     x,y = 0,0
 #    print(poss)
@@ -625,20 +645,22 @@ def hypothesis (safe, poss, view):
 
 
 ###MAIN SOLVE LOOP###
-def solve (safe, view = False, viewall = False):
+def solve (safe, view = False, view_poss = False, viewall = False):
     '''Main solve loop. May get recursive calls between solve and hypothesis.'''
+    safe = deepcopy(safe)
     poss = possibilities (safe)
     
     while True:
-        safe_ = deepcopy(safe)
         check_consistency (safe)
         
         if solved(safe): return safe
         
         if view:
-            print_state (safe)
-            print(state_poss(poss))
-            wait()
+            os.system('cls')
+            print(state(safe))
+            if view_poss:
+                print(state_poss(poss))
+                wait()
         
         poss = possibilities (safe)
         poss_ =  []
@@ -655,17 +677,24 @@ def solve (safe, view = False, viewall = False):
         
 
 def launch (sudoku):
-    try: sudoku = solve(sudoku, view = True, viewall = True)
+    try: sudoku = solve(sudoku, view = True, view_poss = True, viewall = True)
     except Inconsistent as e:
         print(e.message)
         wait()
         quit()
-        
-    print_state(sudoku)
+
+    os.system('cls')
+    print(state(sudoku))
     print('Sudoku is solved!')
     wait()
     print('Program completed')
     
 
 ###PROGRAM EXECUTION###
-launch(test)
+sudoku = test
+
+view = True
+view_poss = True
+view_all = True
+
+#launch(sudoku)
