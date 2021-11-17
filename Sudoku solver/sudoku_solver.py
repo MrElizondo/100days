@@ -5,10 +5,6 @@ from copy import deepcopy
 from itertools import combinations
 import numpy as np
 
-class Inconsistent(Exception):
-    '''Custom error type to express that the Sudoku is inconsistent.'''
-    def __init__(self, message):
-        self.message = message
 
 
 o = None
@@ -33,6 +29,11 @@ test = [[1,7,o,o,9,o,3,o,8],
 
 
 class Sudoku:
+    class Inconsistent(Exception):
+        '''Custom error type to express that the Sudoku is inconsistent.'''
+        def __init__(self, message):
+            self.message = message
+            
     boxes_small = [
             [9556,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9559],
             [9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553],
@@ -103,7 +104,7 @@ class Sudoku:
         else:
             pass #Function to input custom sudoku
         
-        poss = np.empty((9,9,0))
+        poss = np.empty(0)
     
     
     def __str__ (self):
@@ -123,6 +124,7 @@ class Sudoku:
     
     
     def str_poss (self):
+        '''String representation of the <poss> matrix, in the style of __str__.'''
         boxes = self.boxes_big
         
         n = 3
@@ -140,23 +142,109 @@ class Sudoku:
         #Turn into a multi-line string
         state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
         return state
-
-
-
+    
+    
+    def which_quadrant (self, position):
+        '''Takes a <position> tuple as input and outputs the quadrant it corresponds to (0-8).'''
+        x, y = position
+        q = (x//3)*3 + y//3
+        return q
+    
+    
+    def get_quadrant (self, array, q):
+        '''Returns the quadrant q as a list.'''
+        quadrant = [array[i,j] for j in range(9) for k in range(9) if i==self.which_quadrant((j,k))]
+        assert len(quadrant) == 9
+        return quadrant
+    
+    
+    def insert_quadrant (self, array, quad, q):
+        '''Inserts the quadrant in the appropriate position in the array.'''
+        array = [array[i,j] if self.which_quadrant((j,k)) == q else quad.pop(0)
+                for i in range(9) for j in range(9)]
+        return array
+    
+    
+    def solved (self):
+        '''Checks if the sudoku is solved by looking for None values.'''
+        not_num = [type(self.sudoku[i,j])!=int for i in range(9) for j in range(9)]
+        not_solved = any(not_num)
+        return not not_solved
+    
+    
+    def check_consistency (self):
+        '''Checks the consistency of the sudoku by looking for repeated numbers in rows, columns
+        or quadrants. If <poss> exists, checks that all numbers are present between the sudoku
+        and the possibility space.
+        If the sudoku is not consistent, an Inconsistent exception will be raised.'''
+        
+        ##Repeated numbers##
+        def repeats (lst):
+            '''Check list for duplicates'''
+            lst = [item for item in lst if item != None]
+            lst_set = set(lst)
+            contains_duplicates = not(len(lst) == len(lst_set))
+            if contains_duplicates:
+                message = 'Duplicate numbers found in the Sudoku.'
+                raise Sudoku.Inconsistent(message)
+            return False
+        
+        for i in range(9):
+            row = self.sudoku[i,:]
+            repeats(row)
+        
+        for i in range(9):
+            column = self.sudoku[:,j]
+            repeats(column)
+        
+        for i in range(9):
+            quadrant = self.get_quadrant(self.sudoku, i)
+            repeats(quadrant)
+        
+        ##Missing numbers##
+        if self.poss.size == 0: return True
+        
+        def missing_numbers (lst_sudoku, lst_poss):
+            '''Checks if all numbers are present between the sudoku and the possibility space.'''
+            correct = set(list(range(1,10)))
+            
+            numbers = set(lst_sudoku)
+            for i in range(9): numbers.update(lst_poss[i])
+            try: numbers.remove(None)
+            except KeyError: pass
+            
+            if numbers != correct:
+                message = 'A number cannot be placed in any position.'
+                raise Sudoku.Inconsistent(message)
+            return False
+        
+        for i in range(9):
+            row = self.sudoku[i,:]
+            row_poss = self.poss[i,:]
+            missing_numbers(row, row_poss)
+        
+        for i in range(9):
+            column = self.sudoku[:,i]
+            column_poss = self.poss[:,i]
+            missing_numbers(column, column_poss)
+        
+        for i in range(9):
+            quadrant = self.get_quadrant(self.sudoku, i)
+            quadrant_poss = self.get_quadrant(self.poss, i)
+            missing_numbers(quadrant, quadrant_poss)
+        
+        return True
+    
+    
+    def possibility_space (self):
+        pass
+        
 
 
 ###AUXILIARY FUNCTIONS###
 def wait ():
     print()
     os.system('pause')
-
-
-def quadrant (position):
-    '''Simple function that takes a position as a tuple and outputs the quadrant
-    number for that position. Quadrants range from 0 to 8.'''
-    x, y = position
-    quadrant = (x//3)*3 + y//3
-    return quadrant
 
 
 def quadrant_to_list (poss, q):
@@ -178,95 +266,7 @@ def list_to_quadrant (poss, lst, q):
     return poss
 
 
-def solved (safe):
-    '''Checks if the sudoku is solved.'''
-    safe = deepcopy(safe)
-    lst = [item for row in safe for item in row]
-    solved = (None not in lst)
-    return solved
-
-
 ###SECONDARY FUNCTIONS###
-def check_consistency (safe, poss = None):
-    '''This function checks <safe> for consistency in quadrants, rows and columns,
-    and raises an <Inconsistent> exception if there are two equal numbers in the same
-    quadrant, row or column.
-    The function then checks <poss> for consistency: no possible numbers for a position,
-    no possible position for a number in a quadrant, row or column.
-    Returns a boolean value.'''
-    safe = deepcopy(safe)
-    poss = deepcopy(poss)
-    
-    #####<safe>#####
-    def repeats (lst):
-        '''Check list for duplicates'''
-        lst = [item for item in lst if item != None]
-        lst_set = set(lst)
-        contains_duplicates = not(len(lst) == len(lst_set))
-        if contains_duplicates:
-            message = 'Duplicate numbers found in the Sudoku.'
-            raise Inconsistent(message)
-        return False
-    
-    for i in range(9):
-        row = safe[i]
-        repeats(row)
-    
-    for i in range(9):
-        column = [safe[j][i] for j in range(9)]
-        repeats(column)
-        
-    for i in range(9):
-        quadrant = quadrant_to_list(safe,i)
-        repeats(quadrant)
-        
-    #####<poss>#####
-    if not poss: return True
-    
-    def missing_numbers (lst_safe, lst_poss):
-        '''Check if 1-9 are all present in lst_safe and lst_poss.'''
-        correct = set((1,2,3,4,5,6,7,8,9))
-        
-        num_set = set(lst_safe)
-        for i in range(len(lst_poss)): num_set.update(lst_poss[i])
-        
-        try: numset.remove(None)
-        except KeyError: pass
-        
-        if num_set != correct:
-            message = 'A number cannot be placed in any position.'
-            raise Inconsistent(message)
-        return False
-        
-    for i in range(9):
-        for j in range(9):
-            if poss[i][j] == [] and not(safe[i][j]):
-                message = 'No possibilities left for one of the positions.'
-                raise Inconsistent(message)
-    
-    for i in range(9):
-        row_safe = safe[i]
-        row_poss = poss[i]
-        missing_numbers(row_safe, row_poss)
-    
-    for i in range(9):
-        column_safe = [safe[j][i] for j in range(9)]
-        column_poss = [poss[j][i] for j in range(9)]
-        missing_numbers(column_safe, column_poss)
-        
-    for i in range(9):
-        quadrant_safe = quadrant_to_list(safe,i)
-        quadrant_poss = quadrant_to_list(poss,i)
-        missing_numbers(quadrant_safe, quadrant_poss)
-        
-    return True
-
-
-def state_poss (poss):
-    '''Outputs the state of the sudoku's poss matrix as a multi-line string.'''
-    
-
-
 def possibilities (safe):
     '''This function creates <poss> matrix with a list of possible numbers for each
     position, naively considering the numbers present in the quadrant, row and
