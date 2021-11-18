@@ -26,3 +26,4 @@
 14-nov: Day 21 - Screen rotation - written and tested
 15-nov: Day 22 - Sudoku solver - bug hunting (unsuccessful)
 16-nov: Day 23 - Sudoku solver - rewriting code as OOP and using numpy
+17-nov: Day 24 - Sudoku solver - wrote possibility_space and tested methods up to it
