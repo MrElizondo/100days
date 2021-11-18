@@ -104,7 +104,7 @@ class Sudoku:
         else:
             pass #Function to input custom sudoku
         
-        poss = np.empty(0)
+        self.poss = np.empty(0)
     
     
     def __str__ (self):
@@ -133,14 +133,15 @@ class Sudoku:
         #Substitute numbers
         for i in range(9):
             for j in range(9):
-                for number in range(1,10):
-                    if number in poss[i][j]:
-                        x = 4*i + 1 + offset[number][1]
-                        y = 8*j + 2 + offset[number][0]
-                        boxes[x][y] = number + 48
+                lst = deepcopy(self.poss[i,j])
+                for value in lst:
+                    if not np.isnan(value):
+                        x = 4*i + 1 + offset[value][1]
+                        y = 8*j + 2 + offset[value][0]
+                        boxes[x][y] = value + 48 #+48 because 0 in unicode is 48
         
         #Turn into a multi-line string
-        state = '\n'.join([''.join([chr(i) for i in row]) for row in boxes])
+        state = '\n'.join([''.join([chr(int(i)) for i in row]) for row in boxes])
         return state
     
     
@@ -153,7 +154,7 @@ class Sudoku:
     
     def get_quadrant (self, array, q):
         '''Returns the quadrant q as a list.'''
-        quadrant = [array[i,j] for j in range(9) for k in range(9) if i==self.which_quadrant((j,k))]
+        quadrant = [array[i,j] for i in range(9) for j in range(9) if q==self.which_quadrant((i,j))]
         assert len(quadrant) == 9
         return quadrant
     
@@ -163,6 +164,34 @@ class Sudoku:
         array = [array[i,j] if self.which_quadrant((j,k)) == q else quad.pop(0)
                 for i in range(9) for j in range(9)]
         return array
+    
+    
+    def possibility_space (self):
+        '''This function creates <poss>, the matrix that represents all the possible numbers
+        for each of the sudoku's positions. It first creates a matrix with all the possibilities,
+        and then deletes all numbers that are in the same row, column or quadrant for each position.'''
+        base = list(range(1,10))
+        self.poss = np.empty((9,9,9))
+        
+        def remove_values (base, lst):
+            for value in lst:
+                try: base[value-1] = None
+                except: pass
+            return base
+        
+        for i in range(9):
+            for j in range(9):
+                if self.sudoku[i,j] != None:
+                    self.poss[i,j,:] = [None]*9
+                else:
+                    lst = deepcopy(base)
+                    
+                    lst = remove_values(lst, self.sudoku[i,:])
+                    lst = remove_values(lst, self.sudoku[:,j])
+                    q = self.which_quadrant((i,j))
+                    lst = remove_values(lst, self.get_quadrant(self.sudoku, q))
+                    self.poss[i,j] = deepcopy(lst)
+        return self.poss
     
     
     def solved (self):
@@ -234,11 +263,6 @@ class Sudoku:
             missing_numbers(quadrant, quadrant_poss)
         
         return True
-    
-    
-    def possibility_space (self):
-        pass
-        
 
 
 ###AUXILIARY FUNCTIONS###

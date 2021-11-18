@@ -11,6 +11,8 @@ sudoku = [[1,7,2,6,9,o,3,o,8],
           [4,o,6,o,5,o,o,8,1]]
 
 
-poss = possibilities(test)
-
-print(state_poss(poss))
+sudoku = Sudoku(test)
+print(sudoku)
+os.system('pause')
+sudoku.possibility_space()
+print(sudoku.str_poss())
