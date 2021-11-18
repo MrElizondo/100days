@@ -13,6 +13,12 @@ sudoku = [[1,7,2,6,9,o,3,o,8],
 
 sudoku = Sudoku(test)
 print(sudoku)
-os.system('pause')
 sudoku.possibility_space()
 print(sudoku.str_poss())
+print('Sudoku solved?', sudoku.solved())
+print('Sudoku consistent?', sudoku.check_consistency())
+os.system('pause')
+os.system('cls')
+sudoku.sudoku = np.array(test_solved)
+print('Sudoku solved?', sudoku.solved())
+print('Sudoku consistent?', sudoku.check_consistency())

@@ -8,6 +8,7 @@ import numpy as np
 
 
 o = None
+
 test_easy = [[7,9,6,1,4,3,o,5,o],
              [4,5,o,o,o,o,1,3,o],
              [o,1,o,7,o,2,o,o,9],
@@ -17,6 +18,7 @@ test_easy = [[7,9,6,1,4,3,o,5,o],
              [6,o,o,8,o,7,o,2,o],
              [o,7,8,o,o,o,o,1,4],
              [o,2,o,4,3,9,7,6,8]]
+
 test = [[1,7,o,o,9,o,3,o,8],
         [o,o,o,o,1,o,o,o,o],
         [o,5,4,2,o,o,o,o,6],
@@ -26,6 +28,16 @@ test = [[1,7,o,o,9,o,3,o,8],
         [8,o,o,o,o,6,7,3,o],
         [o,o,o,o,4,o,o,o,o],
         [4,o,6,o,5,o,o,8,1]]
+
+test_solved = [[1,7,2,6,9,4,3,5,8],
+               [6,8,9,5,1,3,4,2,7],
+               [3,5,4,2,8,7,1,9,6],
+               [2,1,8,4,3,5,6,7,9],
+               [5,6,3,9,7,1,8,4,2],
+               [9,4,7,8,6,2,5,1,3],
+               [8,9,5,1,2,6,7,3,4],
+               [7,2,1,3,4,8,9,6,5],
+               [4,3,6,7,5,9,2,8,1]]
 
 
 class Sudoku:
@@ -197,11 +209,12 @@ class Sudoku:
     def solved (self):
         '''Checks if the sudoku is solved by looking for None values.'''
         not_num = [type(self.sudoku[i,j])!=int for i in range(9) for j in range(9)]
-        not_solved = any(not_num)
-        return not not_solved
+        solved = all(not_num)
+        print(not_num)
+        return solved
     
     
-    def check_consistency (self):
+    def consistent (self):
         '''Checks the consistency of the sudoku by looking for repeated numbers in rows, columns
         or quadrants. If <poss> exists, checks that all numbers are present between the sudoku
         and the possibility space.
@@ -223,7 +236,7 @@ class Sudoku:
             repeats(row)
         
         for i in range(9):
-            column = self.sudoku[:,j]
+            column = self.sudoku[:,i]
             repeats(column)
         
         for i in range(9):
@@ -236,13 +249,16 @@ class Sudoku:
         def missing_numbers (lst_sudoku, lst_poss):
             '''Checks if all numbers are present between the sudoku and the possibility space.'''
             correct = set(list(range(1,10)))
+            lst_poss = [int(elem) for i in lst_poss for elem in i if not np.isnan(elem)]
             
             numbers = set(lst_sudoku)
-            for i in range(9): numbers.update(lst_poss[i])
+            numbers.update(lst_poss)
             try: numbers.remove(None)
             except KeyError: pass
             
             if numbers != correct:
+                print(numbers)
+                print(lst_sudoku, '\n', lst_poss)
                 message = 'A number cannot be placed in any position.'
                 raise Sudoku.Inconsistent(message)
             return False
@@ -265,61 +281,6 @@ class Sudoku:
         return True
 
 
-###AUXILIARY FUNCTIONS###
-def wait ():
-    print()
-    os.system('pause')
-
-
-def quadrant_to_list (poss, q):
-    '''Converts a given quadrant from <poss> or <safe> into a list.'''
-    poss = deepcopy(poss)
-    x = (q//3)*3
-    y = (q %3)*3
-    lst = [poss[x+i//3][y+i%3] for i in range(9)]
-    return lst
-
-
-def list_to_quadrant (poss, lst, q):
-    '''Converts a given lst into a quadrant form and integrates it into poss.'''
-    poss = deepcopy(poss)
-    x = (q//3)*3
-    y = (q %3)*3
-    for j in range (3):
-        poss[x+j][y:y+3] = [lst[(j)*3+i] for i in range(3)]
-    return poss
-
-
-###SECONDARY FUNCTIONS###
-def possibilities (safe):
-    '''This function creates <poss> matrix with a list of possible numbers for each
-    position, naively considering the numbers present in the quadrant, row and
-    column pertaining to that position. Progressively subtracts numbers from a list.'''
-    safe = deepcopy(safe)
-    basic = [1,2,3,4,5,6,7,8,9]
-    poss = [[basic for _ in range(9)] for _ in range(9)]
-    for i in range(9):
-        for j in range(9):
-            if safe[i][j] != None:
-                poss[i][j] = []
-                value = safe[i][j]
-                q = quadrant((i,j))
-                quad = deepcopy(quadrant_to_list(poss, q))
-                for k in range(9):
-                    if value in poss[k][j]:
-                        lst = deepcopy(poss[k][j])
-                        lst.remove(value)
-                        poss[k][j] = lst
-                    if value in poss[i][k]:
-                        lst = deepcopy(poss[i][k])
-                        lst.remove(value)
-                        poss[i][k] = lst
-                    if value in quad[k]:
-                        lst = deepcopy(quad[k])
-                        lst.remove(value)
-                        quad[k] = lst
-                        poss = list_to_quadrant(poss, quad, q)
-    return poss
 
 
 ###FINDING VALUES###
