@@ -130,7 +130,7 @@ class Sudoku:
         #Turn into a multi-line string
         state = ''
         for line in boxes:
-            state += ''.join([chr(i) for i in line])
+            state += ''.join([chr(int(i)) for i in line])
             state += '\n'
         return state
     
@@ -171,11 +171,12 @@ class Sudoku:
         return quadrant
     
     
-    def insert_quadrant (self, array, quad, q):
-        '''Inserts the quadrant in the appropriate position in the array.'''
-        array = [array[i,j] if self.which_quadrant((j,k)) == q else quad.pop(0)
-                for i in range(9) for j in range(9)]
-        return array
+    def insert_quadrant (self, quad, q):
+        '''Inserts the quadrant in the appropriate position in the sudoku.'''
+        for i in range(9):
+            for j in range(9):
+                if self.which_quadrant((i,j)) == q:
+                    self.sudoku[i,j] = quad.pop(0)
     
     
     def possibility_space (self):
@@ -279,26 +280,58 @@ class Sudoku:
             missing_numbers(quadrant, quadrant_poss)
         
         return True
-
+    
+    
+    def only_value (self):
+        '''Finds positions in which only one number is possible, and writes it into the sudoku.'''
+        for i in range(9):
+            for j in range(9):
+                count = 0
+                for k in range(9):
+                    if not np.isnan(self.poss[i,j,k]):
+                        count += 1
+                        number = self.poss[i,j,k]
+                if count == 1:
+                    self.sudoku[i,j] = number
+    
+    
+    def only_position (self):
+        '''Finds numbers which have only one possible position, and writes it into the sudoku.
+        Searches row, column or quadrant-wise.'''
+        def check (lst_sudoku, lst_poss):
+            '''Checks if there is a number with a single possible position in the list.'''
+            for number in range(1,10):
+                count = 0
+                for i in range(9):
+                    if number in lst_poss[i]:
+                        count += 1
+                        ind = i
+                if count == 1:
+                    lst_sudoku[ind] = number
+            return lst_sudoku
+        
+        for i in range(9):
+            row = self.sudoku[i,:]
+            row_poss = self.poss[i,:]
+            row = check (row, row_poss)
+            self.sudoku[i,:] = row
+        
+        for i in range(9):
+            column = self.sudoku[:,i]
+            column_poss = self.poss[:,i]
+            column = check (column, column_poss)
+            self.sudoku[:,i] = column
+            
+        
+        for i in range(9):
+            quadrant = self.get_quadrant(self.sudoku, i)
+            quadrant_poss = self.get_quadrant(self.poss, i)
+            quadrant = check (quadrant, quadrant_poss)
+            self.insert_quadrant(quadrant, i)
 
 
 
 ###FINDING VALUES###
-def only_value (safe, poss):
-    '''This function searches <poss> for positions where there is a single possible
-    value, and updates <safe> with those values. Change is True is such positions
-    are found, False otherwise.'''
-    safe = deepcopy(safe)
-    poss = deepcopy(poss)
-    change = False
-    for i in range(9):
-        for j in range(9):
-            if safe[i][j] == None and len(poss[i][j]) == 1:
-                safe[i][j] = poss[i][j][0]
-                change = True
-    return safe, poss, change
-
-
 def only_position (safe, poss):
     '''This function looks for values in <poss> that have a single possible position
     in either a quadrant, a row or a column, and sets them on <safe>. Change is
