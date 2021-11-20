@@ -1,5 +1,15 @@
 '''This program attempts to solve sudokus by applying a sequence of common
 human techniques.'''
+
+'''
+TO DO:
+-Method to search rows and columns for values for which all positions fall
+    into the same quadrant -> delete from other positions in quadrant.
+-Finish re-writing methods in OOP
+-Create a way to input the sudoku
+-Create a visual interface
+'''
+
 import os
 from copy import deepcopy
 from itertools import combinations
@@ -45,7 +55,11 @@ class Sudoku:
         '''Custom error type to express that the Sudoku is inconsistent.'''
         def __init__(self, message):
             self.message = message
-            
+    
+    view = True
+    view_poss = False
+    view_all = True
+    
     boxes_small = [
             [9556,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9574,9552,9552,9552,9572,9552,9552,9552,9572,9552,9552,9552,9559],
             [9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9474, 32 , 32 , 32 ,9553],
@@ -110,7 +124,6 @@ class Sudoku:
     
     
     def __init__ (self, sudoku = None):
-        #Include a way to input the sudoku.
         if sudoku:
             self.sudoku = np.array(sudoku)
         else:
@@ -171,12 +184,15 @@ class Sudoku:
         return quadrant
     
     
-    def insert_quadrant (self, quad, q):
+    def insert_quadrant (self, array, quad, q):
         '''Inserts the quadrant in the appropriate position in the sudoku.'''
+        assert type(array) == np.ndarray
         for i in range(9):
             for j in range(9):
                 if self.which_quadrant((i,j)) == q:
-                    self.sudoku[i,j] = quad.pop(0)
+                    array[i,j] = quad.pop(0)
+        assert type(array) == np.ndarray
+        return array
     
     
     def possibility_space (self):
@@ -211,7 +227,6 @@ class Sudoku:
         '''Checks if the sudoku is solved by looking for None values.'''
         not_num = [type(self.sudoku[i,j])!=int for i in range(9) for j in range(9)]
         solved = all(not_num)
-        print(not_num)
         return solved
     
     
@@ -250,16 +265,13 @@ class Sudoku:
         def missing_numbers (lst_sudoku, lst_poss):
             '''Checks if all numbers are present between the sudoku and the possibility space.'''
             correct = set(list(range(1,10)))
+            lst_sudoku = [elem for elem in lst_sudoku if elem != None]
             lst_poss = [int(elem) for i in lst_poss for elem in i if not np.isnan(elem)]
             
             numbers = set(lst_sudoku)
             numbers.update(lst_poss)
-            try: numbers.remove(None)
-            except KeyError: pass
             
             if numbers != correct:
-                print(numbers)
-                print(lst_sudoku, '\n', lst_poss)
                 message = 'A number cannot be placed in any position.'
                 raise Sudoku.Inconsistent(message)
             return False
@@ -327,59 +339,45 @@ class Sudoku:
             quadrant = self.get_quadrant(self.sudoku, i)
             quadrant_poss = self.get_quadrant(self.poss, i)
             quadrant = check (quadrant, quadrant_poss)
-            self.insert_quadrant(quadrant, i)
-
-
-
-###FINDING VALUES###
-def only_position (safe, poss):
-    '''This function looks for values in <poss> that have a single possible position
-    in either a quadrant, a row or a column, and sets them on <safe>. Change is
-    True is such positions are found, False otherwise.'''
-    safe = deepcopy(safe)
-    poss = deepcopy(poss)
-    change = False
-    def check (lst_safe, lst_poss):
-        change = False
-        for value in range(1,10):
-            count = 0
-            for i in range(9):
-                if value in lst_poss[i]: count += 1
-            if count == 1:
+            self.sudoku = self.insert_quadrant(self.sudoku, quadrant, i)
+    
+    
+    def aligned_values (self):
+        #########################################
+        #########FUNCTION EMPTIES POSS###########
+        #########################################
+        
+        '''Searches quadrant-wise for values in which all possible positions fall into
+        a row or column.'''
+        def delete_numbers (number, row_or_col, idx, q):
+            if row_or_col == 'row':
                 for i in range(9):
-                    if value in lst_poss[i]: lst_safe[i] = value
-                change = True
-        return lst_safe, change
-    
-    for i in range(9):
-        row_safe = safe[i]
-        row_poss = poss[i]
-        lst_safe, change1 = check(row_safe, row_poss)
-        safe[i] = lst_safe
-    
-    for i in range(9):
-        column_safe = [safe[j][i] for j in range(9)]
-        column_poss = [poss[j][i] for j in range(9)]
-        lst_safe, change2 = check(column_safe, column_poss)
-        safe = [[lst_safe[j] if k == i else safe[j][k] for k in range(9)] for j in range(9)]
+                    if q != self.which_quadrant((idx,i)):
+                        self.poss[idx,i,number-1] = np.nan
         
-    for i in range(9):
-        quadrant_safe = quadrant_to_list(safe,i)
-        quadrant_poss = quadrant_to_list(poss,i)
-        lst_safe, change3 = check(quadrant_safe, quadrant_poss)
-        safe = list_to_quadrant(safe, lst_safe, i)
         
-    return safe, poss, any([change1, change2, change3])
+        
+        
+        rows    = [{0,1,2}, {3,4,5}, {6,7,8}]
+        columns = [{0,3,6}, {1,4,7}, {2,5,8}]
+        
+        positions = set()
+        for q in range(9):
+            quad = self.get_quadrant(self.poss, q)
+            for number in range(1,10):
+                positions.clear()
+                for i in range(9):
+                    if number in quad[i]:
+                        positions.add(i)
+                for i in range(3):
+                    if positions.issubset(rows[i]):
+                        row_num = i + (q%3)*3
+                        delete_numbers(number, 'row', row_num, q)
+                    if positions.issubset(columns[i]):
+                        column_num = i + (q//3)*3
+                        delete_numbers(number, 'column', column_num, q)
+        
 
-
-def update_values (safe, poss):
-    safe = deepcopy(safe)
-    poss = deepcopy(poss)
-    
-    safe, poss, change1 = only_value(safe,poss)
-    safe, poss, change2 = only_position(safe,poss)
-    change = change1 or change2
-    return safe, poss, change
 
 
 ###REDUCING POSSIBILITY SPACE###
@@ -597,7 +595,7 @@ def hypothesis (safe, poss, view):
 
 
 ###MAIN SOLVE LOOP###
-def solve (safe, view = False, view_poss = False, viewall = False):
+def solve (safe, view = True, view_poss = False, viewall = False):
     '''Main solve loop. May get recursive calls between solve and hypothesis.'''
     safe = deepcopy(safe)
     poss = possibilities (safe)
@@ -628,8 +626,8 @@ def solve (safe, view = False, view_poss = False, viewall = False):
         safe = hypothesis (safe, poss, viewall)
         
 
-def launch (sudoku):
-    try: sudoku = solve(sudoku, view = True, view_poss = True, viewall = True)
+def launch (sudoku, view, view_poss, view_all):
+    try: sudoku = solve(sudoku, view = True, view_poss = True, view_all = True)
     except Inconsistent as e:
         print(e.message)
         wait()
@@ -649,4 +647,4 @@ view = True
 view_poss = True
 view_all = True
 
-#launch(sudoku)
+#launch(sudoku, view, view_poss, view_all)
