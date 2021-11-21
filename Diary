@@ -30,3 +30,4 @@
 18-nov: Day 25 - Sudoku solver - solved and consistent tested and debugged
 19-nov: Day 26 - Sudoku_solver - wrote and tested only_value and only_position
 20-nov: Day 27 - Sudoku_solver - wrote aligned_values, apparently did it wrong
+21-nov: pass
