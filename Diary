@@ -31,3 +31,6 @@
 19-nov: Day 26 - Sudoku_solver - wrote and tested only_value and only_position
 20-nov: Day 27 - Sudoku_solver - wrote aligned_values, apparently did it wrong
 21-nov: pass
+22-nov: pass
+23-nov: Day 28 - Renamer - tiny change
+24-nov: Day 29 - Sudoku_solver - tried debugging aligned_values, will try rewriting
