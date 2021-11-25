@@ -11,10 +11,11 @@ sudoku = [[1,7,2,6,9,o,3,o,8],
           [4,o,6,o,5,o,o,8,1]]
 
 
-sudoku = Sudoku(test)
+sudoku = Sudoku(sudoku)
 print(sudoku)
 sudoku.possibility_space()
 sudoku.consistent()
+sudoku.str_poss()
 sudoku.aligned_values()
 print(sudoku.str_poss())
 print('Sudoku solved?', sudoku.solved())

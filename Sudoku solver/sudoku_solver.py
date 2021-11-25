@@ -279,16 +279,19 @@ class Sudoku:
         for i in range(9):
             row = self.sudoku[i,:]
             row_poss = self.poss[i,:]
+            #print('Row', i)
             missing_numbers(row, row_poss)
         
         for i in range(9):
             column = self.sudoku[:,i]
             column_poss = self.poss[:,i]
+            #print('Column', i)
             missing_numbers(column, column_poss)
         
         for i in range(9):
             quadrant = self.get_quadrant(self.sudoku, i)
             quadrant_poss = self.get_quadrant(self.poss, i)
+            #print('Quadrant', i)
             missing_numbers(quadrant, quadrant_poss)
         
         return True
@@ -356,8 +359,6 @@ class Sudoku:
                         self.poss[idx,i,number-1] = np.nan
         
         
-        
-        
         rows    = [{0,1,2}, {3,4,5}, {6,7,8}]
         columns = [{0,3,6}, {1,4,7}, {2,5,8}]
         
@@ -370,12 +371,15 @@ class Sudoku:
                     if number in quad[i]:
                         positions.add(i)
                 for i in range(3):
+                    if len(positions) == 0: continue
                     if positions.issubset(rows[i]):
                         row_num = i + (q%3)*3
                         delete_numbers(number, 'row', row_num, q)
+                        #print(positions, 'is a subset of', rows[i])
                     if positions.issubset(columns[i]):
                         column_num = i + (q//3)*3
                         delete_numbers(number, 'column', column_num, q)
+                        #print(positions, 'is a subset of', columns[i])
         
 
 
