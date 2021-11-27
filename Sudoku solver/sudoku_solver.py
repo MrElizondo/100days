@@ -159,11 +159,11 @@ class Sudoku:
         for i in range(9):
             for j in range(9):
                 lst = deepcopy(self.poss[i,j])
-                for value in lst:
-                    if not np.isnan(value):
-                        x = 4*i + 1 + offset[value][1]
-                        y = 8*j + 2 + offset[value][0]
-                        boxes[x][y] = value + 48 #+48 because 0 in unicode is 48
+                for k in range(9):
+                    if lst[k]:
+                        x = 4*i + 1 + offset[k+1][1]
+                        y = 8*j + 2 + offset[k+1][0]
+                        boxes[x][y] = k + 1 + 48 #+48 because 0 in unicode is 48
         
         #Turn into a multi-line string
         state = '\n'.join([''.join([chr(int(i)) for i in row]) for row in boxes])
@@ -179,14 +179,16 @@ class Sudoku:
     
     def get_quadrant (self, array, q):
         '''Returns the quadrant q as a list.'''
-        quadrant = [array[i,j] for i in range(9) for j in range(9) if q==self.which_quadrant((i,j))]
+        quadrant = np.array(
+            [array[i,j] for i in range(9) for j in range(9)
+            if q==self.which_quadrant((i,j))])
         assert len(quadrant) == 9
         return quadrant
     
     
     def insert_quadrant (self, array, quad, q):
         '''Inserts the quadrant in the appropriate position in the sudoku.'''
-        assert type(array) == np.ndarray
+        quad = list(quad)
         for i in range(9):
             for j in range(9):
                 if self.which_quadrant((i,j)) == q:
@@ -199,27 +201,30 @@ class Sudoku:
         '''This function creates <poss>, the matrix that represents all the possible numbers
         for each of the sudoku's positions. It first creates a matrix with all the possibilities,
         and then deletes all numbers that are in the same row, column or quadrant for each position.'''
-        base = list(range(1,10))
-        self.poss = np.empty((9,9,9))
+        self.poss = np.full((9,9,9),True)
         
-        def remove_values (base, lst):
-            for value in lst:
-                try: base[value-1] = None
-                except: pass
+        def delete_numbers (base, numbers):
+            for i in range(9):
+                for number in numbers:
+                    if number:
+                        base[i,number-1] = False
             return base
+        
+        for i in range(9):
+            self.poss[i,:] = delete_numbers(self.poss[i,:], self.sudoku[i,:])
+            self.poss[:,i] = delete_numbers(self.poss[:,i], self.sudoku[:,i])
+            
+        for q in range(9):
+            poss = self.get_quadrant(self.poss, q)
+            safe = self.get_quadrant(self.sudoku, q)
+            new_poss = delete_numbers(poss, safe)
+            self.insert_quadrant(self.poss, new_poss, q)
         
         for i in range(9):
             for j in range(9):
                 if self.sudoku[i,j] != None:
-                    self.poss[i,j,:] = [None]*9
-                else:
-                    lst = deepcopy(base)
-                    
-                    lst = remove_values(lst, self.sudoku[i,:])
-                    lst = remove_values(lst, self.sudoku[:,j])
-                    q = self.which_quadrant((i,j))
-                    lst = remove_values(lst, self.get_quadrant(self.sudoku, q))
-                    self.poss[i,j] = deepcopy(lst)
+                    for k in range(9):
+                        self.poss[i,j,k] = False
         return self.poss
     
     
@@ -244,6 +249,7 @@ class Sudoku:
             contains_duplicates = not(len(lst) == len(lst_set))
             if contains_duplicates:
                 message = 'Duplicate numbers found in the Sudoku.'
+                print(lst, lst_set)
                 raise Sudoku.Inconsistent(message)
             return False
         
@@ -266,12 +272,13 @@ class Sudoku:
             '''Checks if all numbers are present between the sudoku and the possibility space.'''
             correct = set(list(range(1,10)))
             lst_sudoku = [elem for elem in lst_sudoku if elem != None]
-            lst_poss = [int(elem) for i in lst_poss for elem in i if not np.isnan(elem)]
+            lst_poss = [i for i in range(1,10) for j in range(9) if lst_poss[j,i-1]]
             
             numbers = set(lst_sudoku)
             numbers.update(lst_poss)
             
             if numbers != correct:
+                print(numbers)
                 message = 'A number cannot be placed in any position.'
                 raise Sudoku.Inconsistent(message)
             return False
@@ -279,19 +286,16 @@ class Sudoku:
         for i in range(9):
             row = self.sudoku[i,:]
             row_poss = self.poss[i,:]
-            #print('Row', i)
             missing_numbers(row, row_poss)
         
         for i in range(9):
             column = self.sudoku[:,i]
             column_poss = self.poss[:,i]
-            #print('Column', i)
             missing_numbers(column, column_poss)
         
         for i in range(9):
             quadrant = self.get_quadrant(self.sudoku, i)
             quadrant_poss = self.get_quadrant(self.poss, i)
-            #print('Quadrant', i)
             missing_numbers(quadrant, quadrant_poss)
         
         return True
@@ -303,12 +307,12 @@ class Sudoku:
             for j in range(9):
                 count = 0
                 for k in range(9):
-                    if not np.isnan(self.poss[i,j,k]):
+'''                    if not np.isnan(self.poss[i,j,k]):
                         count += 1
                         number = self.poss[i,j,k]
                 if count == 1:
                     self.sudoku[i,j] = number
-    
+''' #fix this^    
     
     def only_position (self):
         '''Finds numbers which have only one possible position, and writes it into the sudoku.

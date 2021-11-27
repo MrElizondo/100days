@@ -11,15 +11,24 @@ sudoku = [[1,7,2,6,9,o,3,o,8],
           [4,o,6,o,5,o,o,8,1]]
 
 
-sudoku = Sudoku(sudoku)
+sudoku = Sudoku(test)
 print(sudoku)
-sudoku.possibility_space()
-sudoku.consistent()
-sudoku.str_poss()
-sudoku.aligned_values()
+
+
+while True:
+    sudoku_ = deepcopy(sudoku.sudoku)
+    sudoku.possibility_space()
+    sudoku.consistent()
+    sudoku.only_value()
+    print(sudoku)
+    print(sudoku.str_poss())
+    sudoku.possibility_space()    
+    sudoku.only_position()
+    
+    print(sudoku)
+    
+    if (sudoku.sudoku == sudoku_).all(): break
+    if sudoku.solved(): break
+    
+print(sudoku)
 print(sudoku.str_poss())
-print('Sudoku solved?', sudoku.solved())
-print('Sudoku consistent?', sudoku.consistent())
-sudoku.only_value()
-sudoku.only_position()
-print(sudoku)
